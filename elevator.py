@@ -11,7 +11,7 @@ class Skyscraper:
         dest = r.choice([i for i in range(0,self.top) if not i==start])
         new_task = Task(start, dest)
 
-
+#Förslagvis gör vi varje elevator en child class där vi bara ändrar make choice för varje stratergi
 class Elevator:
     def __init__(self, max_load):
         self.current_floor = 0
@@ -19,6 +19,10 @@ class Elevator:
         self.dest = 0 
         self.tasks = []
     
+    #bestämmer om hissen ska gå upp(return 0), ner(return 1) eller släppa av/på passagerare(return 2)
+    def make_choice(self)->int:
+        return 1
+
     def finish_task 
 
 
