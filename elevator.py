@@ -60,7 +60,7 @@ class Elevator:
         #håller koll om hissen väntar på passagerare att gå på/av
         self.waiting_on_floor = 0
     
-    #bestämmer om hissen ska gå upp(return 0), ner(return 1) eller släppa av/på passagerare(return 2)
+    #bestämmer om hissen ska gå upp(return 0), ner(return 1) eller släppa av/på passagerare(return 2) (kan skicka -1 om du vill att den inte ska göra ngt)
     def make_choice(self,information:list)->int:
         return 2
 
@@ -73,25 +73,61 @@ class Elevator:
 
  #   def finish_task 
 
-
 class Task:
     def __init__(self, start, dest):
         self.floor = start
         self.dest = dest 
         self.time = 0 
 
+class WaitLong(Elevator):
+    def __init__(self, max_load):
+        super().__init__(max_load)
+    
+    def make_choice(self, information: list) -> int:
+        waited_longest = None
+        onElevator = False
+        for floor in information:
+            for task in floor:
+                if waited_longest == None:
+                    waited_longest = task
+                elif waited_longest.time < task.time:
+                    waited_longest = task.time
+        for task in self.tasks:
+            if waited_longest == None:
+                waited_longest = task
+                onElevator = True
+            elif waited_longest.time < task.time:
+                onElevator = True
+                waited_longest = task.time 
+
+        if waited_longest == None:
+            return -1   
+
+        if onElevator:
+            if self.current_floor == waited_longest.dest:
+                return 2
+            elif self.current_floor - waited_longest.dest < 0:
+                return 0
+            else:
+                return 1
+        else:
+            if self.current_floor == waited_longest.floor:
+                return 2
+            elif self.current_floor - waited_longest.floor < 0:
+                return 0
+            else:
+                return 1
+
 #för debugging
 if __name__ == "__main__":
     skyscrape = Skyscraper(4,1)
-    skyscrape.floor_state[0].append(Task(0,2))
-    print(skyscrape.floor_state,skyscrape.elevators[0].tasks)
-    skyscrape.time_step()
-    print(skyscrape.floor_state,skyscrape.elevators[0].tasks)
-    skyscrape.elevators[0].current_floor = 2
-    skyscrape.elevators[0].waiting_on_floor = 0
-    skyscrape.time_step()
-    print(skyscrape.floor_state,skyscrape.elevators[0].tasks)
+    skyscrape.elevators[0] = WaitLong(5)
+    skyscrape.floor_state[3].append(Task(3,2))
+    for i in range(10):
 
+        skyscrape.time_step()
+        print(skyscrape.elevators[0].current_floor)
+        print(skyscrape.elevators[0].tasks)
 
 
     
