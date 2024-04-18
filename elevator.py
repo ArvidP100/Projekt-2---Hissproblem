@@ -2,7 +2,7 @@ import random as r
 #test test test
 #ingrid är här
 class Skyscraper:
-    def __init__(self, num_floors, num_elevators):
+    def __init__(self, num_floors, num_elevators,firstfloorp=0.5,toofirstfloorp=0.8):
         self.top = num_floors
         self.elevators = [MajorityElevator(5) for i in range(num_elevators)]
         #Antar att floorstates är en lista av tasks som väntar där
@@ -11,10 +11,24 @@ class Skyscraper:
         #hur många tidsteg det tar att släppa på/av
         self.wait_cost = 3 
 
+        #andelen tasks som genereras på första våningen
+        self.ffg = firstfloorp
+
+        #andelen tasks som vill till första våningen
+        self.tff = toofirstfloorp
+
     def generate_task(self):
-        start = r.randint(0, self.top)
-        dest = r.choice([i for i in range(0,self.top) if not i==start])
-        new_task = Task(start, dest)
+
+        if r.random() < self.ffg:
+            start = 0
+            dest = r.randint(1,self.top)
+        else:
+            start = r.randint(1, self.top)
+            if r.random() < self.tff:
+                dest = 0
+            else:
+                dest = r.choice([i for i in range(1,self.top) if not i==start])
+        self.floor_state[start].append(Task(start, dest))
 
     def time_step(self)-> None:
         for elv in self.elevators:
@@ -182,10 +196,8 @@ class WaitLong(Elevator):
 #för debugging
 if __name__ == "__main__":
     skyscrape = Skyscraper(4,1)
-    
-    skyscrape.floor_state[1].append(Task(1,2))
-    skyscrape.floor_state[2].append(Task(2,3))
-    skyscrape.floor_state[2].append(Task(2,3))
+    for i in range(5):
+        skyscrape.generate_task()
 
     for _ in range(20):
         skyscrape.time_step()
@@ -202,10 +214,6 @@ if __name__ == "__main__":
     # skyscrape.elevators[0].waiting_on_floor = 0
     # skyscrape.time_step()
     # print(skyscrape.floor_state,skyscrape.elevators[0].tasks)
-
-        skyscrape.time_step()
-        print(skyscrape.elevators[0].current_floor)
-        print(skyscrape.elevators[0].tasks)
 
 
     
