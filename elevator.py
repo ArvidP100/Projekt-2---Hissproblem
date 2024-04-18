@@ -67,8 +67,8 @@ class Elevator:
         #håller koll om hissen väntar på passagerare att gå på/av
         self.waiting_on_floor = 0
     
-    #bestämmer om hissen ska gå upp(return 0), ner(return 1) eller släppa av/på passagerare(return 2)
-    def make_choice(self,information:list)->int: 
+    #bestämmer om hissen ska gå upp(return 0), ner(return 1) eller släppa av/på passagerare(return 2) (kan skicka -1 om du vill att den inte ska göra ngt)
+    def make_choice(self,information:list)->int:
         return 2
 
     def check_for_arrival(self):
@@ -138,7 +138,6 @@ class MajorityElevator(Elevator):
 
         #return floor_list
 
-
 class Task:
     def __init__(self, start, dest):
         self.floor = start
@@ -148,6 +147,44 @@ class Task:
     # för debugging
     def __repr__(self):
         return f'Task(start: {self.floor}, dest: {self.dest}, time: {self.time})'
+class WaitLong(Elevator):
+    def __init__(self, max_load):
+        super().__init__(max_load)
+    
+    def make_choice(self, information: list) -> int:
+        waited_longest = None
+        onElevator = False
+        for floor in information:
+            for task in floor:
+                if waited_longest == None:
+                    waited_longest = task
+                elif waited_longest.time < task.time:
+                    waited_longest = task.time
+        for task in self.tasks:
+            if waited_longest == None:
+                waited_longest = task
+                onElevator = True
+            elif waited_longest.time < task.time:
+                onElevator = True
+                waited_longest = task.time 
+
+        if waited_longest == None:
+            return -1   
+
+        if onElevator:
+            if self.current_floor == waited_longest.dest:
+                return 2
+            elif self.current_floor - waited_longest.dest < 0:
+                return 0
+            else:
+                return 1
+        else:
+            if self.current_floor == waited_longest.floor:
+                return 2
+            elif self.current_floor - waited_longest.floor < 0:
+                return 0
+            else:
+                return 1
 
 #för debugging
 if __name__ == "__main__":
@@ -173,6 +210,9 @@ if __name__ == "__main__":
     # skyscrape.time_step()
     # print(skyscrape.floor_state,skyscrape.elevators[0].tasks)
 
+        skyscrape.time_step()
+        print(skyscrape.elevators[0].current_floor)
+        print(skyscrape.elevators[0].tasks)
 
 
     
