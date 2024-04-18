@@ -105,15 +105,8 @@ class MajorityElevator(Elevator):
     # får in floor_states som information, det är en lista med listor
     def make_choice(self, information: list) -> int:
         
-        # # om personer håller på att gå på, fortsätter den låta dem göra det
-        # if self.passengers_entering > 0:
-        #     self.passengers_entering -= 1
-        #     return 2
-        
         if self.destination[0]:
             if self.destination[1] == self.current_floor:
-                # # passengers är -1 för en får gå av första gången
-                # passengers_entering = len(information[self.current_floor]) - 1 
                 self.destination = (False, None)
                 return 2
             else:
@@ -190,11 +183,11 @@ class WaitLong(Elevator):
 if __name__ == "__main__":
     skyscrape = Skyscraper(4,1)
     
-    #skyscrape.floor_state[1].append(Task(1,2))
+    skyscrape.floor_state[1].append(Task(1,2))
     skyscrape.floor_state[2].append(Task(2,3))
     skyscrape.floor_state[2].append(Task(2,3))
 
-    for _ in range(10):
+    for _ in range(20):
         skyscrape.time_step()
         print(f'floor states: {skyscrape.floor_state} \n tasks: {skyscrape.elevators[0].tasks} \n floor: {skyscrape.elevators[0].current_floor} \n =====')
         
