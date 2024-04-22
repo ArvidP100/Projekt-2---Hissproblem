@@ -4,7 +4,7 @@ import random as r
 class Skyscraper:
     def __init__(self, num_floors, num_elevators,firstfloorp=0.5,toofirstfloorp=0.8):
         self.top = num_floors
-        self.elevators = [MajorityElevator(5) for i in range(num_elevators)]
+        self.elevators = [WaitLong(5) for i in range(num_elevators)]
         #Antar att floorstates är en lista av tasks som väntar där
         self.floor_state = [[] for i in range(num_floors)]  
 
@@ -21,13 +21,13 @@ class Skyscraper:
 
         if r.random() < self.ffg:
             start = 0
-            dest = r.randint(1,self.top)
+            dest = r.randint(1,self.top-1)
         else:
-            start = r.randint(1, self.top)
+            start = r.randint(1, self.top-1)
             if r.random() < self.tff:
                 dest = 0
             else:
-                dest = r.choice([i for i in range(1,self.top) if not i==start])
+                dest = r.choice([i for i in range(1,self.top-1) if not i==start])
         self.floor_state[start].append(Task(start, dest))
 
     def time_step(self)-> None:
@@ -72,6 +72,7 @@ class Elevator:
     def __init__(self, max_load):
         #sparar hut mycket tid passageare väntat
         self.totaltime = 0
+        self.sqrttot = 0
 
         self.current_floor = 0
         self.max_load = max_load
@@ -89,7 +90,8 @@ class Elevator:
         l = []
         for i in range(len(self.tasks)):
             if self.tasks[i].dest == self.current_floor:
-                self.totaltime += self.tasks[i].time**2
+                self.totaltime += self.tasks[i].time
+                self.sqrttot += self.tasks[i].time**2
                 l.append(i)
         l.reverse()
         for i in l:
@@ -166,14 +168,14 @@ class WaitLong(Elevator):
                 if waited_longest == None:
                     waited_longest = task
                 elif waited_longest.time < task.time:
-                    waited_longest = task.time
+                    waited_longest = task
         for task in self.tasks:
             if waited_longest == None:
                 waited_longest = task
                 onElevator = True
             elif waited_longest.time < task.time:
                 onElevator = True
-                waited_longest = task.time 
+                waited_longest = task
 
         if waited_longest == None:
             return -1   
@@ -196,14 +198,15 @@ class WaitLong(Elevator):
 #för debugging
 if __name__ == "__main__":
     skyscrape = Skyscraper(4,1)
-    for i in range(5):
-        skyscrape.generate_task()
 
-    for _ in range(20):
+    for i in range(10000):
+        if i % 10 == 0:
+            skyscrape.generate_task()
         skyscrape.time_step()
         print(f'floor states: {skyscrape.floor_state} \n tasks: {skyscrape.elevators[0].tasks} \n floor: {skyscrape.elevators[0].current_floor} \n =====')
         
-   
+    print(skyscrape.elevators[0].totaltime/1000)
+    print(skyscrape.elevators[0].sqrttot/1000)
 
     # skyscrape = Skyscraper(4,1)
     # skyscrape.floor_state[0].append(Task(0,2))
@@ -212,7 +215,7 @@ if __name__ == "__main__":
     # print(skyscrape.floor_state,skyscrape.elevators[0].tasks)
     # skyscrape.elevators[0].current_floor = 2
     # skyscrape.elevators[0].waiting_on_floor = 0
-    # skyscrape.time_step()
+    # skyscrape.time_step()/
     # print(skyscrape.floor_state,skyscrape.elevators[0].tasks)
 
 
