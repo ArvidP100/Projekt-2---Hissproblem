@@ -1,15 +1,14 @@
 import random as r
-#test test test
-#ingrid är här
+
 class Skyscraper:
-    def __init__(self, num_floors, num_elevators,firstfloorp=0.5,toofirstfloorp=0.8):
+    def __init__(self, num_floors, num_elevators,Elv,firstfloorp=0.5,toofirstfloorp=0.5):
         self.top = num_floors
-        self.elevators = [WaitLong(5) for i in range(num_elevators)]
+        self.elevators = [Elv(5) for i in range(num_elevators)]
         #Antar att floorstates är en lista av tasks som väntar där
         self.floor_state = [[] for i in range(num_floors)]  
 
         #hur många tidsteg det tar att släppa på/av
-        self.wait_cost = 3 
+        self.wait_cost = 4 
 
         #andelen tasks som genereras på första våningen
         self.ffg = firstfloorp
@@ -179,7 +178,6 @@ class WaitLong(Elevator):
 
         if waited_longest == None:
             return -1   
-
         if onElevator:
             if self.current_floor == waited_longest.dest:
                 return 2
@@ -195,28 +193,56 @@ class WaitLong(Elevator):
             else:
                 return 1
 
-#för debugging
-if __name__ == "__main__":
-    skyscrape = Skyscraper(4,1)
+class UpAndDown(Elevator):
+    def __init__(self, max_load):
+        super().__init__(max_load)
+        self.going_up = True
 
-    for i in range(10000):
-        if i % 10 == 0:
+    def make_choice(self, information:list):
+        arrivals = bool([task for task in self.tasks if task.dest == self.current_floor])
+        departurs = bool(information[self.current_floor])
+
+        if arrivals or departurs:
+            return 2
+        elif self.going_up:
+            elev = bool([task for task in self.tasks if task.dest > self.current_floor]) 
+            house = bool([task for floor in information for task in floor if task.floor > self.current_floor])
+            if not any([elev, house]):
+                self.going_up = False
+                return 1
+            return 0
+        else:
+            elev = bool([task for task in self.tasks if task.dest < self.current_floor]) 
+            house = bool([task for floor in information for task in floor if task.floor < self.current_floor])
+            if not any([elev, house]):
+                self.going_up = True
+                return 0
+            return 1
+
+#för debugging/få fram resultat
+if __name__ == "__main__":
+    skyscrape = Skyscraper(5,1,MajorityElevator,firstfloorp=0.2,toofirstfloorp=0.25)
+    skyscrape.elevators[0].maxload = 7
+    n = 0
+    for i in range(50000):
+        if r.randint(1,100) < 40:
+            n += 1
             skyscrape.generate_task()
         skyscrape.time_step()
-        print(f'floor states: {skyscrape.floor_state} \n tasks: {skyscrape.elevators[0].tasks} \n floor: {skyscrape.elevators[0].current_floor} \n =====')
-        
-    print(skyscrape.elevators[0].totaltime/1000)
-    print(skyscrape.elevators[0].sqrttot/1000)
+        if i % 1000==0:
+            print(i)
 
-    # skyscrape = Skyscraper(4,1)
-    # skyscrape.floor_state[0].append(Task(0,2))
-    # print(skyscrape.floor_state,skyscrape.elevators[0].tasks)
-    # skyscrape.time_step()
-    # print(skyscrape.floor_state,skyscrape.elevators[0].tasks)
-    # skyscrape.elevators[0].current_floor = 2
-    # skyscrape.elevators[0].waiting_on_floor = 0
-    # skyscrape.time_step()/
-    # print(skyscrape.floor_state,skyscrape.elevators[0].tasks)
+    for t in skyscrape.elevators[0].tasks:
+        skyscrape.elevators[0].totaltime += t.time
+        skyscrape.elevators[0].sqrttot += t.time **2
+    for f in skyscrape.floor_state:
+        for t in f:
+            skyscrape.elevators[0].totaltime += t.time
+            skyscrape.elevators[0].sqrttot += t.time **2           
+    print(f"snitt tid:{skyscrape.elevators[0].totaltime/n}")
+    print(f"kvadratisk tid:{skyscrape.elevators[0].sqrttot/n}")
+    print(f"Antal passagerare:{n}")
+
 
 
     
