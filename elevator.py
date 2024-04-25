@@ -55,8 +55,10 @@ class Skyscraper:
 
                 elv.waiting_on_floor = self.wait_cost
             elif choice == 0:
+                elv.distance += 1
                 elv.current_floor += 1
             elif choice == 1:
+                elv.distance += 1
                 elv.current_floor += -1          
     #får tiden att gå frammåt
             for task in elv.tasks:
@@ -72,6 +74,7 @@ class Elevator:
         #sparar hut mycket tid passageare väntat
         self.totaltime = 0
         self.sqrttot = 0
+        self.distance = 0
 
         self.current_floor = 0
         self.max_load = max_load
@@ -221,7 +224,7 @@ class UpAndDown(Elevator):
 
 #för debugging/få fram resultat
 if __name__ == "__main__":
-    skyscrape = Skyscraper(5,1,MajorityElevator,firstfloorp=0.2,toofirstfloorp=0.25)
+    skyscrape = Skyscraper(5,1,UpAndDown,firstfloorp=0.5,toofirstfloorp=0.8)
     skyscrape.elevators[0].maxload = 7
     n = 0
     for i in range(50000):
@@ -242,6 +245,7 @@ if __name__ == "__main__":
     print(f"snitt tid:{skyscrape.elevators[0].totaltime/n}")
     print(f"kvadratisk tid:{skyscrape.elevators[0].sqrttot/n}")
     print(f"Antal passagerare:{n}")
+    print(f"Stäck färdad:{skyscrape.elevators[0].distance}")
 
 
 
